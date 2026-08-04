@@ -1,0 +1,222 @@
+# ESP32 Water Meter APATOR xxxx
+# Copyright (c) 2026 www.BONO-IT.pl, Sebastian Stybel
+
+esphome:
+  name: esp32-water-meter-apator-xxxx
+  friendly_name: "ESP32 Water Meter APATOR xxxx"
+
+esp32:
+  board: esp32dev
+  variant: esp32
+  framework:
+    type: esp-idf
+
+logger:
+  level: DEBUG
+  baud_rate: 115200
+
+api:
+  encryption:
+    key: !secret esp32_water_meter_apator_xxxx__encryption_key
+
+ota:
+  - platform: esphome
+    password: !secret esp32_water_meter_apator_xxxx__ota_password
+
+web_server:
+  port: 80
+  version: 3
+  auth:
+    username: !secret web_server_username_esp32_water_meter_apator_xxxx
+    password: !secret web_server_password_esp32_water_meter_apator_xxxx
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  domain: .domain_name.local
+
+captive_portal:
+
+time:
+  - platform: homeassistant
+
+external_components:
+  - source: github://SzczepanLeon/esphome-components@main
+    components: [wmbus_radio, wmbus_common, wmbus_meter]
+    refresh: 0s
+
+spi:
+  clk_pin: GPIO18
+  mosi_pin: GPIO23
+  miso_pin: GPIO19
+
+wmbus_radio:
+  radio_type: CC1101
+  cs_pin: GPIO15
+  irq_pin: GPIO4
+  frequency: 868.95MHz
+  sync_mode: NORMAL
+  on_frame:
+    - then:
+        - logger.log:
+            format: "RSSi: %ddBm"
+            args: [ frame->rssi() ]
+        - logger.log:
+            format: "Frame (Size %d): %s"
+            args: [ frame->data().size(), frame->as_hex().c_str() ]
+        - logger.log:
+            format: "Analyze: https://wmbusmeters.org/analyze/%s:apator162:00000000000000000000000000000000" # Replace the key (32 zeros) with your actual key for decryption
+            args: [ frame->as_hex().c_str() ]
+    - then:
+        - repeat: # Blink the LED 5 times to indicate a received telegram
+            count: 5
+            then:
+              - output.turn_on: status_led
+              - delay: 100ms
+              - output.turn_off: status_led
+              - delay: 100ms
+
+wmbus_meter:
+  # Water-Meter_Cold-Water
+  - id: water_meter_cold_water
+    meter_id:  0x12345678 # ID of the water meter (can be found on the meter itself - 7 or 8 digits)
+    type: apator162
+    key: "00000000000000000000000000000000" # Key for decryption (default is 32 zeros, but should be changed to the actual key)
+    mode:
+      - C1
+      - T1
+    on_telegram:
+      - then:
+        - logger.log:
+            format: "Telegram received from water meter"
+
+  # Water-Meter_Heat-Water
+  - id: water_meter_heat_water
+    meter_id:  0x87654321 # ID of the water meter (can be found on the meter itself - 7 or 8 digits)
+    type: apator162
+    key: "00000000000000000000000000000000" # Key for decryption (default is 32 zeros, but should be changed to the actual key)
+    mode:
+      - C1
+      - T1
+    on_telegram:
+      - then:
+        - logger.log:
+            format: "Telegram received from water meter"
+
+output:
+  - platform: gpio
+    id: status_led
+    pin: GPIO2 # ESP32 onboard (if exists) LED (D2) or any other GPIO pin you want to use as a status LED
+    
+sensor:
+  # Water-Meter_Cold-Water
+  - platform: wmbus_meter
+    parent_id: water_meter_cold_water
+    field: rssi_dbm
+    name: "Water-Meter_Cold-Water_RSSi"
+    unit_of_measurement: "dBm"
+    device_class: signal_strength
+    state_class: measurement
+    entity_category: diagnostic
+    accuracy_decimals: 0
+    icon: "mdi:signal"
+  - platform: wmbus_meter
+    parent_id: water_meter_cold_water
+    field: total_m3
+    name: "Water-Meter_Cold-Water_Total"
+    unit_of_measurement: "m³"
+    device_class: water
+    state_class: total_increasing
+    accuracy_decimals: 3
+    icon: "mdi:water"
+
+  # Water-Meter_Heat-Water
+  - platform: wmbus_meter
+    parent_id: water_meter_heat_water
+    field: rssi_dbm
+    name: "Water-Meter_Heat-Water_RSSi"
+    unit_of_measurement: "dBm"
+    device_class: signal_strength
+    state_class: measurement
+    entity_category: diagnostic
+    accuracy_decimals: 0
+    icon: "mdi:signal"
+  - platform: wmbus_meter
+    parent_id: water_meter_heat_water
+    field: total_m3
+    name: "Water-Meter_Heat-Water_Total"
+    unit_of_measurement: "m³"
+    device_class: water
+    state_class: total_increasing
+    accuracy_decimals: 3
+    icon: "mdi:water"
+    
+  # ESP32 WiFi Signal strength
+  - platform: wifi_signal
+    name: "Water_Meter_APATOR_xxxx_ESP32-WiFi-Signal-dB"
+    id: wifi_signal_db
+    update_interval: 60s
+    unit_of_measurement: "dBm"
+    device_class: signal_strength
+    state_class: measurement
+    entity_category: diagnostic
+    accuracy_decimals: 0
+    icon: "mdi:signal"
+
+  # ESP32 Uptime
+  - platform: uptime
+    name: "Water_Meter_APATOR_xxxx_ESP32-Uptime"
+    update_interval: 60s
+    entity_category: diagnostic
+    icon: "mdi:timer-play"
+
+text_sensor:
+  # ESP32 Version
+  - platform: version
+    name: "Water_Meter_APATOR_xxxx_ESP32-Version"
+    entity_category: diagnostic
+    icon: "mdi:new-box"
+
+  # ESP32 WiFi Info
+  - platform: wifi_info
+    ip_address:
+      name: "Water_Meter_APATOR_xxxx_ESP32-IP"
+      icon: "mdi:ip"
+    ssid:
+      name: "Water_Meter_APATOR_xxxx_ESP32-SSID"
+      icon: "mdi:wifi-arrow-up-down"
+    bssid:
+      name: "Water_Meter_APATOR_xxxx_ESP32-BSSID"
+      icon: "mdi:slot-machine"
+    mac_address:
+      name: "Water_Meter_APATOR_xxxx_ESP32-MAC"
+      icon: "mdi:slot-machine"
+
+  # Water-Meter_Cold-Water_APATOR-ID
+  - platform: template
+    name: "Water-Meter_Cold-Water_APATOR-ID"
+    lambda: 
+      return "0x12345678"; # ID of the water meter (can be found on the meter itself - 7 or 8 digits)
+    update_interval: 3600s
+    icon: "mdi:identifier"
+  # Water-Meter_Heat-Water_APATOR-ID
+  - platform: template
+    name: "Water-Meter_Heat-Water_APATOR-ID"
+    lambda: 
+      return "0x87654321"; # ID of the water meter (can be found on the meter itself - 7 or 8 digits)
+    update_interval: 3600s
+    icon: "mdi:identifier"
+
+# ESP32 Status
+binary_sensor:
+  - platform: status
+    name: "Water_Meter_APATOR_xxxx_ESP32-Status"
+    entity_category: diagnostic
+    icon: "mdi:list-status"
+
+# ESP32 Restart
+button:
+  - platform: restart
+    name: "Water_Meter_APATOR_xxxx_ESP32-Restart"
+    entity_category: diagnostic
+    icon: "mdi:restart"
