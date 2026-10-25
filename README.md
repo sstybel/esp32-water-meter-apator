@@ -13,10 +13,10 @@
 
 ##  GitHub
 
-![GitHub stats](https://github-readme-stats-sigma-five.vercel.app/api?username=sstybel&show_icons=true&theme=react&hide_title=true&include_all_commits=true)
+[![GitHub Stats](https://github-stats-extended.vercel.app/api?username=sstybel&rank_icon=github&show=reviews%2Cdiscussions_started%2Cdiscussions_answered%2Cprs_merged%2Cprs_merged_percentage%2Cprs_commented%2Cprs_reviewed%2Cissues_commented%2Ccontributions%2Call_time_contribs&show_icons=true&include_all_commits=true&theme=aura_dark)](https://github-stats-extended.vercel.app/api?username=sstybel&rank_icon=github&show=reviews%2Cdiscussions_started%2Cdiscussions_answered%2Cprs_merged%2Cprs_merged_percentage%2Cprs_commented%2Cprs_reviewed%2Cissues_commented%2Ccontributions%2Call_time_contribs&show_icons=true&include_all_commits=true&theme=aura_dark)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[![GitHub Stats](https://github-stats-extended.vercel.app/api/top-langs?username=sstybel&langs_count=6&theme=monokai)](https://github-stats-extended.vercel.app/api/top-langs?username=sstybel&langs_count=6&theme=monokai)
 
 &nbsp;
 
 ---
 
-## Copyright &copy; 2026 by Sebastian Stybel, [www.BONO-IT.pl](https://www.bono-it.pl/)
+## Copyright &copy; 2025 - 2026 by Sebastian Stybel, [www.BONO-IT.pl](https://www.bono-it.pl/)
